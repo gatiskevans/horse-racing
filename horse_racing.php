@@ -2,13 +2,21 @@
 
     class Horses {
 
-        private array $horses = [1 => '@', 2 => '#', 3 => '$'];
+        private array $horses = [1 => '@', 2 => '#'];
+
+        public function __construct(int $noOfHorses){
+            if($noOfHorses > 1){
+                for($i = 1; $i <= $noOfHorses; $i++){
+                    $this->horses[$i] = readline("Choose the symbol for the horse: ");
+                }
+            }
+        }
 
         public function getHorses(): array {
             return $this->horses;
         }
 
-        public function unsetHorse(string $horse){
+        public function unsetHorse(string $horse): void {
             $playerRemove = array_search($horse, $this->horses);
             unset($this->horses[$playerRemove]);
         }
@@ -21,8 +29,13 @@
 
     class DrawGame{
         private string $board;
+        private Game $game;
 
-        public function createBoard(array $grid){
+        public function __construct(Game $game){
+            $this->game = $game;
+        }
+
+        public function createBoard(array $grid): void {
             $draw = "";
             foreach($grid as $player => $board){
                 $draw .= "$player | ";
@@ -37,18 +50,28 @@
         public function getBoard(): string {
             return $this->board;
         }
+
+        public function drawSides(): string {
+            $side = '';
+            for($i = -1; $i <= $this->game->getRunwayLength(); $i++){
+                $side .= "##";
+            }
+            return $side . PHP_EOL;
+        }
+
     }
 
     class Game {
         private array $grid = [];
-        private array $randomValueForHorses;
+        private array $horsePositionOnRunway;
         private array $winners = [];
-        private int $runwayLength = 25;
+        private int $runwayLength = 45;
         private Horses $horses;
+        private int $speed = 120000;
 
         public function __construct(Horses $horses) {
             $this->horses = $horses;
-            $this->randomValueForHorses = array_fill_keys($horses->getHorses(), 0);
+            $this->horsePositionOnRunway = array_fill_keys($horses->getHorses(), 0);
             for($gridForHorse = 1; $gridForHorse <= count($horses->getHorses()); $gridForHorse++){
                 for($distanceLength = 1; $distanceLength < $this->runwayLength; $distanceLength++){
                     $this->grid[$horses->getHorses()[$gridForHorse]][$distanceLength] = "-";
@@ -64,14 +87,22 @@
             return $this->winners;
         }
 
-        public function run(string $horse){
-            $this->grid[$horse][$this->randomValueForHorses[$horse]] = "-";
-            $this->randomValueForHorses[$horse] += rand(1, 2);
-            $this->grid[$horse][$this->randomValueForHorses[$horse]] = "$horse";
+        public function getSpeed(): int {
+            return $this->speed;
         }
 
-        public function findWinner(string $horse) {
-            if($this->randomValueForHorses[$horse] >= $this->runwayLength){
+        public function getRunwayLength(): int {
+            return $this->runwayLength;
+        }
+
+        public function run(string $horse): void {
+            $this->grid[$horse][$this->horsePositionOnRunway[$horse]] = "-";
+            $this->horsePositionOnRunway[$horse] += rand(1, 2);
+            $this->grid[$horse][$this->horsePositionOnRunway[$horse]] = "$horse";
+        }
+
+        public function findWinner(string $horse): void {
+            if($this->horsePositionOnRunway[$horse] >= $this->runwayLength){
                 $this->winners[] = $horse;
                 $this->horses->unsetHorse($horse);
             }
@@ -79,79 +110,102 @@
     }
 
     class Bet {
-        private array $coefficients = [
-            10 => 1,
-            20 => 2,
-            30 => 3
-        ];
+        private int $cash;
+        private array $coefficients = [];
 
-        private array $placedBets = [
-            1 => 0,
-            2 => 0,
-            3 => 0
-        ];
+        private array $placedBets = [];
 
         private int $winnings = 0;
 
-        public function placeBet(int $input, int $horse){
+        public function __construct(Horses $horses) {
+            $this->cash = (int) readline("How much money do you have? ($) ");
+            foreach($horses->getHorses() as $index => $horse){
+                $this->coefficients[$index] = rand(1, 10);
+                $this->placedBets[$index] = 0;
+            }
+        }
+
+        public function placeBet(int $input, int $horse): void {
             $this->placedBets[$horse] = $input;
+        }
+
+        public function getCash(): int {
+            return $this->cash;
+        }
+
+        public function setCash(int $input): void {
+            $this->cash += $input;
         }
 
         public function getPlacedBets(): array {
             return $this->placedBets;
         }
 
+        public function getCoefficient(int $winner): int {
+            return $this->coefficients[$winner];
+        }
+
         public function getWinnings(): int {
             return $this->winnings;
         }
 
-        public function setWinnings($input) {
+        public function setWinnings($input): void {
             $this->winnings += $input;
         }
 
-        public function calculateWinnings(int $index){
-            $coef = array_keys($this->coefficients, $index);
-            return $coef[0] * $this->placedBets[$index];
+        public function calculateWinnings(int $index): int {
+            $coef = $this->coefficients[$index];
+            return $coef * $this->placedBets[$index];
         }
 
     }
 
-    $horses = new Horses();
+    $noOfHorses = (int) readline("How many horses will participate? ");
+
+    $horses = new Horses($noOfHorses);
     $game = new Game($horses);
-    $board = new DrawGame();
-    $bets = new Bet();
+    $board = new DrawGame($game);
+    $bets = new Bet($horses);
 
     foreach($horses->getHorses() as $index => $horse){
         echo "$index | Horse $horse\n";
     }
 
+    //Because unset horses after the race
     $racers = $horses->getHorses();
 
     while(true){
-        $betHorse = readline("Choose a horse to place a bet on or type C to start the race: ");
-
+        echo "Your cash: \${$bets->getCash()}\n";
+        $betHorse = readline("Choose a horse to place a bet on or press ENTER start the race: ");
         if(array_key_exists($betHorse, $horses->getHorses())){
             $bet = (int) readline("Place a bet for the horse [{$horses->getHorses()[$betHorse]}]\n");
+            if($bet > $bets->getCash()) {
+                echo "Not enough money!\n";
+                continue;
+            }
             $bets->placeBet($bet, $betHorse);
+            $bets->setCash(-$bet);
         }
-        if(strtoupper($betHorse) === "C"){
+        if(strtoupper($betHorse) === ""){
             break;
         }
     }
 
+    while(true){
 
-    $competition = readline("Press ENTER to start the race!");
-
-    while(isset($competition)){
+        echo $board->drawSides();
         $board->createBoard($game->getGrid());
         echo $board->getBoard();
+        echo $board->drawSides();
         echo PHP_EOL . PHP_EOL . PHP_EOL;
+
         if($horses->checkHowManyRunning() === 0) break;
         foreach($horses->getHorses() as $horse){
             $game->run($horse);
             $game->findWinner($horse);
         }
-        usleep('120000');
+
+        usleep($game->getSpeed());
 
     }
 
@@ -159,14 +213,20 @@
 
     foreach($game->getWinners() as $position => $horse){
         $position++;
-        echo "{$position} place: Horse '$horse'\n";
+        echo "$position place: Horse '$horse'\n";
     }
 
+    $noBetsPlaced = 0;
     foreach($bets->getPlacedBets() as $index => $bet){
         if($bet > 0 && $game->getWinners()[0] === $racers[$index]){
             $bets->setWinnings($bets->calculateWinnings($index));
             echo "Congratulations! You won: \${$bets->getWinnings()}\n";
+            echo "Horse winning coefficient was {$bets->getCoefficient($index)}\n";
+            $bets->setCash($bets->getWinnings());
+            die("Your cash: {$bets->getCash()}");
         }
+        if($bet > 0) $noBetsPlaced++;
     }
 
-    if($bets->getWinnings() === 0) echo "You lost!";
+    if($noBetsPlaced === 0) die("You didn't place a bet! What a shame!");
+    echo "You lost! Your cash \${$bets->getCash()}";
