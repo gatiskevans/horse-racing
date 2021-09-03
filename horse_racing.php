@@ -54,10 +54,6 @@
             return $this->board;
         }
 
-        public function getSide(): string {
-            return $this->side;
-        }
-
         public function drawSide(): void {
             $side = '';
             for($i = -1; $i <= $this->game->getRunwayLength(); $i++){
