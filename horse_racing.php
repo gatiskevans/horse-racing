@@ -17,8 +17,8 @@
         }
 
         public function unsetHorse(string $horse): void {
-            $playerRemove = array_search($horse, $this->horses);
-            unset($this->horses[$playerRemove]);
+            $horseRemove = array_search($horse, $this->horses);
+            unset($this->horses[$horseRemove]);
         }
 
         public function checkHowManyRunning(): int {
@@ -30,13 +30,15 @@
     class DrawGame{
         private string $board;
         private Game $game;
+        private string $side;
 
         public function __construct(Game $game){
             $this->game = $game;
         }
 
         public function createBoard(array $grid): void {
-            $draw = "";
+            $draw = $this->side;
+
             foreach($grid as $player => $board){
                 $draw .= "$player | ";
                 foreach($board as $step){
@@ -44,6 +46,7 @@
                 }
                 $draw .= "\n";
             }
+            $draw .= $this->side;
             $this->board = $draw;
         }
 
@@ -51,12 +54,17 @@
             return $this->board;
         }
 
-        public function drawSides(): string {
+        public function getSide(): string {
+            return $this->side;
+        }
+
+        public function drawSide(): void {
             $side = '';
             for($i = -1; $i <= $this->game->getRunwayLength(); $i++){
                 $side .= "##";
             }
-            return $side . PHP_EOL;
+            $side .= "\n";
+            $this->side = $side;
         }
 
     }
@@ -67,7 +75,7 @@
         private array $winners = [];
         private int $runwayLength = 45;
         private Horses $horses;
-        private int $speed = 120000;
+        private int $speed = 125000;
 
         public function __construct(Horses $horses) {
             $this->horses = $horses;
@@ -154,8 +162,7 @@
         }
 
         public function calculateWinnings(int $index): int {
-            $coef = $this->coefficients[$index];
-            return $coef * $this->placedBets[$index];
+            return $this->coefficients[$index] * $this->placedBets[$index];
         }
 
     }
@@ -171,12 +178,13 @@
         echo "$index | Horse $horse\n";
     }
 
-    //Because unset horses after the race
+    //Save array in this variable because unset horses after the race
     $racers = $horses->getHorses();
+    $board->drawSide();
 
     while(true){
         echo "Your cash: \${$bets->getCash()}\n";
-        $betHorse = readline("Choose a horse to place a bet on or press ENTER start the race: ");
+        $betHorse = readline("Choose a horse to place a bet on or press ENTER to start the race: ");
         if(array_key_exists($betHorse, $horses->getHorses())){
             $bet = (int) readline("Place a bet for the horse [{$horses->getHorses()[$betHorse]}]\n");
             if($bet > $bets->getCash()) {
@@ -193,10 +201,8 @@
 
     while(true){
 
-        echo $board->drawSides();
         $board->createBoard($game->getGrid());
         echo $board->getBoard();
-        echo $board->drawSides();
         echo PHP_EOL . PHP_EOL . PHP_EOL;
 
         if($horses->checkHowManyRunning() === 0) break;
