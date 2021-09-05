@@ -211,6 +211,7 @@
 
     }
 
+    usleep(500000);
     echo PHP_EOL;
 
     foreach($game->getWinners() as $position => $horse){
