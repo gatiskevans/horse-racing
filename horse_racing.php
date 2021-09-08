@@ -31,15 +31,15 @@
         private array $grid = [];
         private array $horsePositionOnRunway;
         private array $winners = [];
-        private int $runwayLength = 45;
+        private static int $runwayLength = 45;
         private Horses $horses;
-        private int $speed = 125000;
+        private static int $speed = 125000;
 
         public function __construct(Horses $horses) {
             $this->horses = $horses;
             $this->horsePositionOnRunway = array_fill_keys($horses->getHorses(), 0);
             for($gridForHorse = 1; $gridForHorse <= count($horses->getHorses()); $gridForHorse++){
-                for($distanceLength = 1; $distanceLength < $this->runwayLength; $distanceLength++){
+                for($distanceLength = 1; $distanceLength < self::$runwayLength; $distanceLength++){
                     $this->grid[$horses->getHorses()[$gridForHorse]][$distanceLength] = "-";
                 }
             }
@@ -53,12 +53,12 @@
             return $this->winners;
         }
 
-        public function getSpeed(): int {
-            return $this->speed;
+        public static function getSpeed(): int {
+            return self::$speed;
         }
 
-        public function getRunwayLength(): int {
-            return $this->runwayLength;
+        public static function getRunwayLength(): int {
+            return self::$runwayLength;
         }
 
         public function run(string $horse): void {
@@ -68,7 +68,7 @@
         }
 
         public function findWinner(string $horse): void {
-            if($this->horsePositionOnRunway[$horse] >= $this->runwayLength){
+            if($this->horsePositionOnRunway[$horse] >= self::$runwayLength){
                 $this->winners[] = $horse;
                 $this->horses->unsetHorse($horse);
             }
@@ -77,12 +77,7 @@
 
     class DrawGame{
         private string $runway;
-        private Game $game;
         private string $side;
-
-        public function __construct(Game $game){
-            $this->game = $game;
-        }
 
         public function createBoard(array $grid): void {
             $draw = $this->side;
@@ -104,7 +99,7 @@
 
         public function drawSide(): void {
             $side = '';
-            for($i = -1; $i <= $this->game->getRunwayLength(); $i++){
+            for($i = -1; $i <= Game::getRunwayLength(); $i++){
                 $side .= "##";
             }
             $side .= "\n";
@@ -116,9 +111,7 @@
     class Bet {
         private int $cash;
         private array $coefficients = [];
-
         private array $placedBets = [];
-
         private int $winnings = 0;
 
         public function __construct(Horses $horses) {
@@ -167,7 +160,7 @@
 
     $horses = new Horses($noOfHorses);
     $game = new Game($horses);
-    $board = new DrawGame($game);
+    $board = new DrawGame();
     $bets = new Bet($horses);
 
     foreach($horses->getHorses() as $index => $horse){
@@ -207,7 +200,7 @@
             $game->findWinner($horse);
         }
 
-        usleep($game->getSpeed());
+        usleep(Game::getSpeed());
 
     }
 
