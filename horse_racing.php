@@ -27,44 +27,6 @@
 
     }
 
-    class DrawGame{
-        private string $board;
-        private Game $game;
-        private string $side;
-
-        public function __construct(Game $game){
-            $this->game = $game;
-        }
-
-        public function createBoard(array $grid): void {
-            $draw = $this->side;
-
-            foreach($grid as $player => $board){
-                $draw .= "$player | ";
-                foreach($board as $step){
-                    $draw .= "$step ";
-                }
-                $draw .= "\n";
-            }
-            $draw .= $this->side;
-            $this->board = $draw;
-        }
-
-        public function getBoard(): string {
-            return $this->board;
-        }
-
-        public function drawSide(): void {
-            $side = '';
-            for($i = -1; $i <= $this->game->getRunwayLength(); $i++){
-                $side .= "##";
-            }
-            $side .= "\n";
-            $this->side = $side;
-        }
-
-    }
-
     class Game {
         private array $grid = [];
         private array $horsePositionOnRunway;
@@ -111,6 +73,44 @@
                 $this->horses->unsetHorse($horse);
             }
         }
+    }
+
+    class DrawGame{
+        private string $board;
+        private Game $game;
+        private string $side;
+
+        public function __construct(Game $game){
+            $this->game = $game;
+        }
+
+        public function createBoard(array $grid): void {
+            $draw = $this->side;
+
+            foreach($grid as $player => $board){
+                $draw .= "$player | ";
+                foreach($board as $step){
+                    $draw .= "$step ";
+                }
+                $draw .= "\n";
+            }
+            $draw .= $this->side;
+            $this->board = $draw;
+        }
+
+        public function getBoard(): string {
+            return $this->board;
+        }
+
+        public function drawSide(): void {
+            $side = '';
+            for($i = -1; $i <= $this->game->getRunwayLength(); $i++){
+                $side .= "##";
+            }
+            $side .= "\n";
+            $this->side = $side;
+        }
+
     }
 
     class Bet {
