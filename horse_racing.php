@@ -76,7 +76,7 @@
     }
 
     class DrawGame{
-        private string $board;
+        private string $runway;
         private Game $game;
         private string $side;
 
@@ -95,11 +95,11 @@
                 $draw .= "\n";
             }
             $draw .= $this->side;
-            $this->board = $draw;
+            $this->runway = $draw;
         }
 
-        public function getBoard(): string {
-            return $this->board;
+        public function getRunway(): string {
+            return $this->runway;
         }
 
         public function drawSide(): void {
@@ -198,7 +198,7 @@
     while(true){
 
         $board->createBoard($game->getGrid());
-        echo $board->getBoard();
+        echo $board->getRunway();
         echo PHP_EOL . PHP_EOL . PHP_EOL;
 
         if($horses->checkHowManyRunning() === 0) break;
